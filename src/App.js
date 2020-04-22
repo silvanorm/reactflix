@@ -1,26 +1,69 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { PureComponent } from 'react';
+import { connect } from 'react-redux';
+import styled, { createGlobalStyle } from 'styled-components';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+import Header from './components/header';
+import Footer from './components/footer';
+import VideosList from './components/videos-list';
+import VideoSingle from './components/video-single';
+import RegisterVideo from './components/register-video';
+import { headerHeight, footerHeight } from './utils/constants';
+import { fetchVideos } from './redux-flow/reducers/videos/action-creators';
+
+import 'normalize.css';
+import 'milligram';
+
+class App extends PureComponent {
+  componentDidMount() {
+    this.props.fetchVideos();
+  }
+
+  render() {
+    const { isRegisterVideoFormOpened, videoSingleId, videos } = this.props;
+
+    return (
+      <Container>
+        <GlobalStyle />
+
+        <Header />
+
+        <Main>
+          {isRegisterVideoFormOpened && <RegisterVideo />}
+          {videoSingleId && (
+            <VideoSingle
+              id={videoSingleId}
+              title={videos[videoSingleId].title}
+            />
+          )}
+          <VideosList />
+        </Main>
+
+        <Footer />
+      </Container>
+    );
+  }
 }
 
-export default App;
+const GlobalStyle = createGlobalStyle`
+  html, body, div#root {
+    height: 100%;
+  }
+`;
+
+const Container = styled.div`
+  height: 100%;
+`;
+
+const Main = styled.main`
+  min-height: calc(100% - ${headerHeight} - ${footerHeight});
+`;
+
+const mapStateToProps = state => ({
+  isRegisterVideoFormOpened: state.ui.isRegisterVideoFormOpened,
+  videoSingleId: state.videoSingle,
+  videos: state.videos
+});
+
+const mapDispatchToProps = { fetchVideos };
+
+export default connect(mapStateToProps, mapDispatchToProps)(App);
